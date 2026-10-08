@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Регистрация</title>
+    <link rel="icon" href="image.png" type="image/png">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<header>
+    <h1>Управление студентами</h1>
+    <nav>
+        <a href="login.html">Вход</a>
+        <a href="register.html">Регистрация</a>
+    </nav>
+</header>
+
+<main>
+    <h2>Регистрация</h2>
+
+    <form id="register-form" class="auth-form">
+        <p>
+            <label for="username">Логин</label>
+            <input type="text" id="username" name="username" required minlength="3" maxlength="32"
+                   pattern="[A-Za-z0-9_]+" autocomplete="username"
+                   title="От 3 до 32 символов: латинские буквы, цифры и _">
+            <span class="field-error" id="error-username"></span>
+        </p>
+
+        <p>
+            <label for="email">Почта</label>
+            <input type="email" id="email" name="email" required maxlength="254" autocomplete="email">
+            <span class="field-error" id="error-email"></span>
+        </p>
+
+        <p>
+            <label for="password">Пароль</label>
+            <input type="password" id="password" name="password" required minlength="8" maxlength="64"
+                   autocomplete="new-password" title="От 8 символов, хотя бы одна буква и одна цифра">
+            <span class="field-error" id="error-password"></span>
+        </p>
+
+        <p>
+            <label for="password-repeat">Пароль ещё раз</label>
+            <input type="password" id="password-repeat" name="password-repeat" required autocomplete="new-password">
+            <span class="field-error" id="error-password-repeat"></span>
+        </p>
+
+        <p id="form-error" class="form-error"></p>
+
+        <p>
+            <button type="submit" class="button-primary">Зарегистрироваться</button>
+        </p>
+
+        <p>Новый пользователь получает роль USER: он видит список студентов, но не может его изменять.</p>
+        <p>Уже есть аккаунт? <a href="login.html">Войдите</a></p>
+    </form>
+</main>
+
+<footer>
+    <p>Лабораторная работа №3</p>
+</footer>
+
+<script src="js/auth.js"></script>
+<script src="js/api.js"></script>
+<script src="js/register.js"></script>
+
+</body>
+</html>

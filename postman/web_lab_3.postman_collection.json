@@ -1,0 +1,1969 @@
+{
+  "info": {
+    "name": "web_lab_3 — студенты общежития (Jakarta EE)",
+    "description": "Коллекция для лабораторной работы №3. Запускайте папки по порядку: 1) Авторизация сохраняет токены в переменные коллекции, остальные папки их используют. Перед запуском поднимите БД и сервер (см. README.md). Логин и пароль администратора — переменные adminUsername и adminPassword (как в .env).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "noauth"
+  },
+  "item": [
+    {
+      "name": "1. Авторизация",
+      "description": "Регистрация, вход, обновление токенов.",
+      "item": [
+        {
+          "name": "Регистрация пользователя",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "{",
+                  "    pm.test(\"Роль USER\", function () { pm.expect(pm.response.json().role).to.eql(\"USER\"); });",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set(\"username\", \"user_\" + Date.now());"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Новый пользователь всегда получает роль USER. Логин генерируется заново при каждом запуске.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{username}}\",\n  \"email\": \"{{username}}@example.com\",\n  \"password\": \"user12345\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Регистрация: логин занят",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 409\", function () {",
+                  "    pm.response.to.have.status(409);",
+                  "});",
+                  "{",
+                  "    pm.test(\"Ошибка в едином формате\", function () {",
+                  "        const error = pm.response.json().error;",
+                  "        pm.expect(error).to.have.keys(\"status\", \"code\", \"message\", \"details\");",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Тот же логин второй раз — 409 CONFLICT.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{username}}\",\n  \"email\": \"other_{{username}}@example.com\",\n  \"password\": \"user12345\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Регистрация: неверные данные",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 422\", function () {",
+                  "    pm.response.to.have.status(422);",
+                  "});",
+                  "{",
+                  "    pm.test(\"Ошибка в едином формате\", function () {",
+                  "        const error = pm.response.json().error;",
+                  "        pm.expect(error).to.have.keys(\"status\", \"code\", \"message\", \"details\");",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Короткий логин, неверная почта, слабый пароль — 422 со списком полей.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"a\",\n  \"email\": \"not-an-email\",\n  \"password\": \"short\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Вход ADMIN",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "{",
+                  "    const data = pm.response.json();",
+                  "    pm.collectionVariables.set(\"adminAccessToken\", data.access_token);",
+                  "    pm.collectionVariables.set(\"adminRefreshToken\", data.refresh_token);",
+                  "    pm.test(\"Роль ADMIN\", function () { pm.expect(data.user.role).to.eql(\"ADMIN\"); });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Администратор создаётся при старте из ADMIN_USERNAME и ADMIN_PASSWORD (.env). Токены сохраняются в переменные коллекции.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{adminUsername}}\",\n  \"password\": \"{{adminPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Вход USER",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "{",
+                  "    const data = pm.response.json();",
+                  "    pm.collectionVariables.set(\"userAccessToken\", data.access_token);",
+                  "    pm.collectionVariables.set(\"userRefreshToken\", data.refresh_token);",
+                  "    pm.test(\"Роль USER\", function () { pm.expect(data.user.role).to.eql(\"USER\"); });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Вход только что зарегистрированного пользователя.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"user12345\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Вход: неверный пароль",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 401\", function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});",
+                  "{",
+                  "    pm.test(\"Ошибка в едином формате\", function () {",
+                  "        const error = pm.response.json().error;",
+                  "        pm.expect(error).to.have.keys(\"status\", \"code\", \"message\", \"details\");",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Один и тот же ответ для неверного пароля и несуществующего логина.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{adminUsername}}\",\n  \"password\": \"wrong-password1\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Кто я",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "me"
+              ]
+            },
+            "description": "Данные пользователя по access-токену.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminAccessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Обновление токенов",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "{",
+                  "    pm.collectionVariables.set(\"oldUserRefreshToken\", pm.collectionVariables.get(\"userRefreshToken\"));",
+                  "    ",
+                  "    const data = pm.response.json();",
+                  "    pm.collectionVariables.set(\"userAccessToken\", data.access_token);",
+                  "    pm.collectionVariables.set(\"userRefreshToken\", data.refresh_token);",
+                  "    pm.test(\"Роль USER\", function () { pm.expect(data.user.role).to.eql(\"USER\"); });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/refresh",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "refresh"
+              ]
+            },
+            "description": "Refresh-токен меняется на новую пару токенов без логина и пароля. Старый refresh-токен отзывается.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"{{userRefreshToken}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Обновление: старый refresh-токен ещё раз",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 401\", function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});",
+                  "{",
+                  "    pm.test(\"Ошибка в едином формате\", function () {",
+                  "        const error = pm.response.json().error;",
+                  "        pm.expect(error).to.have.keys(\"status\", \"code\", \"message\", \"details\");",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/refresh",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "refresh"
+              ]
+            },
+            "description": "Уже использованный refresh-токен не работает. Сервер считает, что токен украли, и отзывает все токены пользователя.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"{{oldUserRefreshToken}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Вход USER заново",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "{",
+                  "    const data = pm.response.json();",
+                  "    pm.collectionVariables.set(\"userAccessToken\", data.access_token);",
+                  "    pm.collectionVariables.set(\"userRefreshToken\", data.refresh_token);",
+                  "    pm.test(\"Роль USER\", function () { pm.expect(data.user.role).to.eql(\"USER\"); });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "После отзыва всех токенов пользователь входит заново.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"user12345\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "auth": {
+        "type": "noauth"
+      }
+    },
+    {
+      "name": "2. Студенты — ADMIN",
+      "description": "Все операции со студентами под администратором.",
+      "item": [
+        {
+          "name": "Список: первая страница",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "{",
+                  "    pm.test(\"Есть items и total\", function () { pm.expect(pm.response.json()).to.have.keys(\"items\", \"page\", \"size\", \"total\"); });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/requests",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "requests"
+              ]
+            },
+            "description": "По умолчанию: сортировка по ФИО, страница 1, по 10 записей. Ответ: {items, page, size, total}."
+          }
+        },
+        {
+          "name": "Список: фильтры",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/requests?group=M3301&dormitory=alp",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "requests"
+              ],
+              "query": [
+                {
+                  "key": "group",
+                  "value": "M3301"
+                },
+                {
+                  "key": "dormitory",
+                  "value": "alp"
+                }
+              ]
+            },
+            "description": "Фильтры — query-параметры, как в лабораторной работе №2."
+          }
+        },
+        {
+          "name": "Список: поиск, сортировка, страница",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/requests?full_name=ов&sort=check_in&order=desc&page=1&size=5",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "requests"
+              ],
+              "query": [
+                {
+                  "key": "full_name",
+                  "value": "ов"
+                },
+                {
+                  "key": "sort",
+                  "value": "check_in"
+                },
+                {
+                  "key": "order",
+                  "value": "desc"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "size",
+                  "value": "5"
+                }
+              ]
+            },
+            "description": "Поиск по части ФИО, сортировка по дате заселения по убыванию, первые 5 записей."
+          }
+        },
+        {
+          "name": "Список: метод QUERY",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "QUERY",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/requests",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "requests"
+              ]
+            },
+            "description": "Тот же список, но фильтры в JSON-теле. Swagger этот метод не показывает.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"group\": \"M3301\",\n  \"dormitory\": \"alp\",\n  \"is_foreign\": false,\n  \"living\": true,\n  \"sort\": \"room\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Один студент",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/requests/412345",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "requests",
+                "412345"
+              ]
+            },
+            "description": "Студент по номеру ИСУ."
+          }
+        },
+        {
+          "name": "Создать студента",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.sendRequest({url: pm.collectionVariables.get(\"baseUrl\") + \"/api/requests/415001\", method: \"DELETE\", header: {Authorization: \"Bearer \" + pm.collectionVariables.get(\"adminAccessToken\")}}, function () {});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/requests",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "requests"
+              ]
+            },
+            "description": "Создание — только ADMIN. Ответ 201 и заголовок Location.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isu_id\": \"415001\",\n  \"full_name\": \"Тестов Тест Тестович\",\n  \"group\": \"M3301\",\n  \"dormitory\": \"alp\",\n  \"room\": \"1205\",\n  \"check_in\": \"2024-09-01\",\n  \"check_out\": null,\n  \"is_foreign\": false,\n  \"notes\": \"Создан из Postman\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Создать: ИСУ уже есть",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 409\", function () {",
+                  "    pm.response.to.have.status(409);",
+                  "});",
+                  "{",
+                  "    pm.test(\"Ошибка в едином формате\", function () {",
+                  "        const error = pm.response.json().error;",
+                  "        pm.expect(error).to.have.keys(\"status\", \"code\", \"message\", \"details\");",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/requests",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "requests"
+              ]
+            },
+            "description": "Повторное создание с тем же ИСУ.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isu_id\": \"415001\",\n  \"full_name\": \"Тестов Тест Тестович\",\n  \"group\": \"M3301\",\n  \"dormitory\": \"alp\",\n  \"room\": \"1205\",\n  \"check_in\": \"2024-09-01\",\n  \"check_out\": null,\n  \"is_foreign\": false,\n  \"notes\": \"Создан из Postman\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Создать: ошибки в полях",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 422\", function () {",
+                  "    pm.response.to.have.status(422);",
+                  "});",
+                  "{",
+                  "    pm.test(\"Ошибка в едином формате\", function () {",
+                  "        const error = pm.response.json().error;",
+                  "        pm.expect(error).to.have.keys(\"status\", \"code\", \"message\", \"details\");",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/requests",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "requests"
+              ]
+            },
+            "description": "Группа кириллицей, комната с нуля — 422 с полями group и room.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isu_id\": \"415002\",\n  \"full_name\": \"Тестов Тест Тестович\",\n  \"group\": \"М3301\",\n  \"dormitory\": \"alp\",\n  \"room\": \"0123\",\n  \"check_in\": \"2024-09-01\",\n  \"check_out\": \"2024-08-01\",\n  \"is_foreign\": false,\n  \"notes\": \"Создан из Postman\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Полное изменение (PUT)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/requests/415001",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "requests",
+                "415001"
+              ]
+            },
+            "description": "PUT заменяет все поля студента. ИСУ берётся из адреса.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"Тестов Тест Тестович\",\n  \"group\": \"M3302\",\n  \"dormitory\": \"bel\",\n  \"room\": \"1300\",\n  \"check_in\": \"2024-09-01\",\n  \"check_out\": null,\n  \"is_foreign\": false,\n  \"notes\": \"Создан из Postman\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Частичное изменение (PATCH)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "{",
+                  "    pm.test(\"Комната изменилась\", function () { pm.expect(pm.response.json().room).to.eql(\"1401\"); });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/requests/415001",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "requests",
+                "415001"
+              ]
+            },
+            "description": "В теле только меняемые поля.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"room\": \"1401\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "PATCH: выселить",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/requests/415001",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "requests",
+                "415001"
+              ]
+            },
+            "description": "Задать дату выселения.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"check_out\": \"2025-06-30\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "PATCH: снова проживает",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "{",
+                  "    pm.test(\"check_out = null\", function () { pm.expect(pm.response.json().check_out).to.eql(null); });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/requests/415001",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "requests",
+                "415001"
+              ]
+            },
+            "description": "check_out: null — студент снова проживает.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"check_out\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Удалить студента",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 204\", function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/requests/415001",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "requests",
+                "415001"
+              ]
+            },
+            "description": "Ответ 204 без тела."
+          }
+        },
+        {
+          "name": "Удалить ещё раз",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 404\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "{",
+                  "    pm.test(\"Ошибка в едином формате\", function () {",
+                  "        const error = pm.response.json().error;",
+                  "        pm.expect(error).to.have.keys(\"status\", \"code\", \"message\", \"details\");",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/requests/415001",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "requests",
+                "415001"
+              ]
+            },
+            "description": "Такого студента уже нет."
+          }
+        }
+      ],
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{adminAccessToken}}",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "3. Студенты — USER",
+      "description": "USER может только читать.",
+      "item": [
+        {
+          "name": "USER: список",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/requests",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "requests"
+              ]
+            },
+            "description": "USER может читать список."
+          }
+        },
+        {
+          "name": "USER: один студент",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/requests/412345",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "requests",
+                "412345"
+              ]
+            },
+            "description": "USER может читать одного студента."
+          }
+        },
+        {
+          "name": "USER: создать — запрещено",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 403\", function () {",
+                  "    pm.response.to.have.status(403);",
+                  "});",
+                  "{",
+                  "    pm.test(\"Ошибка в едином формате\", function () {",
+                  "        const error = pm.response.json().error;",
+                  "        pm.expect(error).to.have.keys(\"status\", \"code\", \"message\", \"details\");",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/requests",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "requests"
+              ]
+            },
+            "description": "Изменять данные может только ADMIN.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isu_id\": \"415001\",\n  \"full_name\": \"Тестов Тест Тестович\",\n  \"group\": \"M3301\",\n  \"dormitory\": \"alp\",\n  \"room\": \"1205\",\n  \"check_in\": \"2024-09-01\",\n  \"check_out\": null,\n  \"is_foreign\": false,\n  \"notes\": \"Создан из Postman\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "USER: изменить — запрещено",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 403\", function () {",
+                  "    pm.response.to.have.status(403);",
+                  "});",
+                  "{",
+                  "    pm.test(\"Ошибка в едином формате\", function () {",
+                  "        const error = pm.response.json().error;",
+                  "        pm.expect(error).to.have.keys(\"status\", \"code\", \"message\", \"details\");",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/requests/412345",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "requests",
+                "412345"
+              ]
+            },
+            "description": "403 FORBIDDEN.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"room\": \"1300\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "USER: удалить — запрещено",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 403\", function () {",
+                  "    pm.response.to.have.status(403);",
+                  "});",
+                  "{",
+                  "    pm.test(\"Ошибка в едином формате\", function () {",
+                  "        const error = pm.response.json().error;",
+                  "        pm.expect(error).to.have.keys(\"status\", \"code\", \"message\", \"details\");",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/requests/412345",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "requests",
+                "412345"
+              ]
+            },
+            "description": "403 FORBIDDEN."
+          }
+        }
+      ],
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{userAccessToken}}",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "4. Ошибки",
+      "description": "401, 404, 422, 400, 405 в едином формате.",
+      "item": [
+        {
+          "name": "Без токена",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 401\", function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});",
+                  "{",
+                  "    pm.test(\"Ошибка в едином формате\", function () {",
+                  "        const error = pm.response.json().error;",
+                  "        pm.expect(error).to.have.keys(\"status\", \"code\", \"message\", \"details\");",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/requests",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "requests"
+              ]
+            },
+            "description": "Нет заголовка Authorization — 401.",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Поддельный токен",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 401\", function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});",
+                  "{",
+                  "    pm.test(\"Ошибка в едином формате\", function () {",
+                  "        const error = pm.response.json().error;",
+                  "        pm.expect(error).to.have.keys(\"status\", \"code\", \"message\", \"details\");",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/requests",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "requests"
+              ]
+            },
+            "description": "Подпись не сходится — 401 INVALID_TOKEN.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiJ9.fake",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Refresh-токен вместо access",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 401\", function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});",
+                  "{",
+                  "    pm.test(\"Ошибка в едином формате\", function () {",
+                  "        const error = pm.response.json().error;",
+                  "        pm.expect(error).to.have.keys(\"status\", \"code\", \"message\", \"details\");",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/requests",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "requests"
+              ]
+            },
+            "description": "Тип токена проверяется.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminRefreshToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Нет такого студента",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 404\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "{",
+                  "    pm.test(\"Ошибка в едином формате\", function () {",
+                  "        const error = pm.response.json().error;",
+                  "        pm.expect(error).to.have.keys(\"status\", \"code\", \"message\", \"details\");",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/requests/999999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "requests",
+                "999999"
+              ]
+            },
+            "description": "404 NOT_FOUND."
+          }
+        },
+        {
+          "name": "ИСУ не из цифр",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 422\", function () {",
+                  "    pm.response.to.have.status(422);",
+                  "});",
+                  "{",
+                  "    pm.test(\"Ошибка в едином формате\", function () {",
+                  "        const error = pm.response.json().error;",
+                  "        pm.expect(error).to.have.keys(\"status\", \"code\", \"message\", \"details\");",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/requests/abc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "requests",
+                "abc"
+              ]
+            },
+            "description": "422 VALIDATION_ERROR."
+          }
+        },
+        {
+          "name": "Неизвестный параметр",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 422\", function () {",
+                  "    pm.response.to.have.status(422);",
+                  "});",
+                  "{",
+                  "    pm.test(\"Ошибка в едином формате\", function () {",
+                  "        const error = pm.response.json().error;",
+                  "        pm.expect(error).to.have.keys(\"status\", \"code\", \"message\", \"details\");",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/requests?foo=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "requests"
+              ],
+              "query": [
+                {
+                  "key": "foo",
+                  "value": "1"
+                }
+              ]
+            },
+            "description": "Опечатка в параметре не игнорируется."
+          }
+        },
+        {
+          "name": "Битый JSON",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 400\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "{",
+                  "    pm.test(\"Ошибка в едином формате\", function () {",
+                  "        const error = pm.response.json().error;",
+                  "        pm.expect(error).to.have.keys(\"status\", \"code\", \"message\", \"details\");",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/requests",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "requests"
+              ]
+            },
+            "description": "Тело — не JSON-объект: 400.",
+            "body": {
+              "mode": "raw",
+              "raw": "{broken",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Поле неверного типа",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 422\", function () {",
+                  "    pm.response.to.have.status(422);",
+                  "});",
+                  "{",
+                  "    pm.test(\"Ошибка в едином формате\", function () {",
+                  "        const error = pm.response.json().error;",
+                  "        pm.expect(error).to.have.keys(\"status\", \"code\", \"message\", \"details\");",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/requests",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "requests"
+              ]
+            },
+            "description": "is_foreign должен быть true или false.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isu_id\": \"415003\",\n  \"full_name\": \"Тестов Тест Тестович\",\n  \"group\": \"M3301\",\n  \"dormitory\": \"alp\",\n  \"room\": \"1205\",\n  \"check_in\": \"2024-09-01\",\n  \"check_out\": null,\n  \"is_foreign\": \"yes\",\n  \"notes\": \"Создан из Postman\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Неподдерживаемый метод",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 405\", function () {",
+                  "    pm.response.to.have.status(405);",
+                  "});",
+                  "{",
+                  "    pm.test(\"Ошибка в едином формате\", function () {",
+                  "        const error = pm.response.json().error;",
+                  "        pm.expect(error).to.have.keys(\"status\", \"code\", \"message\", \"details\");",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/requests",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "requests"
+              ]
+            },
+            "description": "PUT без ИСУ в адресе не поддерживается.",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{adminAccessToken}}",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "5. Выход",
+      "description": "Отзыв refresh-токена.",
+      "item": [
+        {
+          "name": "Выход ADMIN",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 204\", function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "logout"
+              ]
+            },
+            "description": "Refresh-токен отзывается на сервере.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"{{adminRefreshToken}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Обновление после выхода",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 401\", function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});",
+                  "{",
+                  "    pm.test(\"Ошибка в едином формате\", function () {",
+                  "        const error = pm.response.json().error;",
+                  "        pm.expect(error).to.have.keys(\"status\", \"code\", \"message\", \"details\");",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/refresh",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "refresh"
+              ]
+            },
+            "description": "Отозванный токен больше не работает.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"{{adminRefreshToken}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        }
+      ],
+      "auth": {
+        "type": "noauth"
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "adminUsername",
+      "value": "admin"
+    },
+    {
+      "key": "adminPassword",
+      "value": "admin12345"
+    },
+    {
+      "key": "username",
+      "value": ""
+    },
+    {
+      "key": "adminAccessToken",
+      "value": ""
+    },
+    {
+      "key": "adminRefreshToken",
+      "value": ""
+    },
+    {
+      "key": "userAccessToken",
+      "value": ""
+    },
+    {
+      "key": "userRefreshToken",
+      "value": ""
+    },
+    {
+      "key": "oldUserRefreshToken",
+      "value": ""
+    }
+  ]
+}

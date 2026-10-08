@@ -1,0 +1,3 @@
+# Скрипт Maven Wrapper для Linux/macOS должен иметь окончания строк LF, для Windows — CRLF
+mvnw text eol=lf
+*.cmd text eol=crlf
