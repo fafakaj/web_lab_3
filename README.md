@@ -29,25 +29,27 @@
 | JWT | библиотека `com.auth0:java-jwt`, подпись HS256 |
 | Пароли | BCrypt (библиотека `jbcrypt`) |
 | Документация API | MicroProfile OpenAPI, Swagger UI |
-| Сборка | Maven (скрипт `mvnw` в проекте, Maven ставить не нужно) |
+| Сборка | Maven 3.9 |
 | Клиент | HTML, CSS и JavaScript без фреймворков (страницы из лабораторной работы №2) |
 
 ---
 
 ## Запуск
 
-Нужны две программы: **JDK 21** и **Docker Desktop**. Maven и Open Liberty скачиваются сами
+Нужны три программы: **JDK 21**, **Maven** и **Docker Desktop**. Open Liberty скачивается сам
 при первом запуске.
 
-### 1. Установите JDK 21 (один раз)
+### 1. Установите JDK 21 и Maven (один раз)
 
 **Windows:**
 
 1. Скачайте установщик Eclipse Temurin 21 (`.msi`, x64) с <https://adoptium.net/temurin/releases/?version=21>.
 2. В установщике включите пункты **Set JAVA_HOME variable** и **Add to PATH**.
-3. Откройте **новое** окно PowerShell и проверьте: `java -version`. В ответе должна быть строка `21`.
+3. Скачайте архив Maven (`apache-maven-3.9.x-bin.zip`) с <https://maven.apache.org/download.cgi> и распакуйте его.
+4. Добавьте папку `bin` из распакованного архива в переменную `Path`.
+5. Откройте **новое** окно PowerShell и проверьте: `java -version` и `mvn -v`. В ответе должна быть строка `21`.
 
-**Linux / macOS:** установите JDK 21 из пакетного менеджера или с того же сайта и проверьте `java -version`.
+**Linux / macOS:** установите JDK 21 и Maven из пакетного менеджера и проверьте `java -version` и `mvn -v`.
 
 ### 2. Скачайте проект и создайте `.env`
 
@@ -76,19 +78,11 @@ docker compose up -d
 
 ### 4. Запустите приложение
 
-**Windows (PowerShell):**
-
 ```
-.\mvnw.cmd liberty:dev
+mvn liberty:dev
 ```
 
-**Linux / macOS:**
-
-```
-./mvnw liberty:dev
-```
-
-Первый запуск занимает несколько минут: скачиваются Maven, Open Liberty и библиотеки.
+Первый запуск занимает несколько минут: скачиваются Open Liberty и библиотеки.
 Приложение готово, когда в консоли появилась строка:
 
 ```
@@ -120,7 +114,6 @@ The defaultServer server is ready to run a smarter planet.
 ```
 web_lab_3/
   pom.xml                     зависимости и сборка (Maven), плагин Open Liberty
-  mvnw, mvnw.cmd, .mvn/       Maven Wrapper: скачивает Maven сам
   docker-compose.yml          база данных PostgreSQL
   .env.example                пример настроек (скопировать в .env)
   postman/                    коллекция запросов Postman
@@ -349,7 +342,7 @@ E Необработанная ошибка  (дальше — полная тр
 | `ADMIN_USERNAME`, `ADMIN_EMAIL`, `ADMIN_PASSWORD` | `admin` | администратор, которого сервер создаёт при первом запуске |
 | `DEMO_DATA` | `true` | загрузить демо-студентов, если таблица пуста |
 
-После правки `.env` перезапустите сервер (`Ctrl+C` и снова `mvnw liberty:dev`).
+После правки `.env` перезапустите сервер (`Ctrl+C` и снова `mvn liberty:dev`).
 Если меняете `DB_*` после первого `docker compose up`, удалите старую базу: `docker compose down -v`.
 
 ---
