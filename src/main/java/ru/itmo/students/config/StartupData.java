@@ -8,23 +8,16 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import ru.itmo.students.dto.RegisterRequest;
-import ru.itmo.students.dto.StudentRequest;
 import ru.itmo.students.security.JwtService;
 import ru.itmo.students.service.AuthService;
-import ru.itmo.students.service.StudentService;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UncheckedIOException;
-import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 
 /**
  * Действия при старте приложения:
  * 1) проверить секрет JWT: с плохим JWT_SECRET приложение не запустится;
- * 2) создать администратора из переменных ADMIN_* (.env), если его ещё нет;
- * 3) если таблица студентов пуста и DEMO_DATA=true — загрузить демо-студентов из demo-students.json.
+ * 2) создать администратора из переменных ADMIN_* (.env), если его ещё нет.
  * Метод вызывается событием @Initialized(ApplicationScoped.class): к этому моменту контейнер готов,
  * и @Transactional в сервисах уже работает (в @PostConstruct прокси ещё могло не быть).
  */
@@ -35,9 +28,6 @@ public class StartupData {
 
     @Inject
     AuthService authService;
-
-    @Inject
-    StudentService studentService;
 
     @Inject
     JwtService jwtService;
@@ -57,10 +47,6 @@ public class StartupData {
     @ConfigProperty(name = "ADMIN_PASSWORD")
     String adminPassword;
 
-    @Inject
-    @ConfigProperty(name = "DEMO_DATA", defaultValue = "true")
-    boolean demoData;
-
     void onStart(@Observes @Initialized(ApplicationScoped.class) Object event) {
         // CDI создаёт бин при первом вызове. Вызываем сейчас: проверка секрета в JwtService.init()
         // остановит запуск, а не сломает первый вход пользователя
@@ -68,9 +54,6 @@ public class StartupData {
 
         try {
             createAdmin();
-            if (demoData) {
-                studentService.loadDemoIfEmpty(readDemoStudents());
-            }
         } catch (RuntimeException e) {
             LOG.severe("Приложение не смогло подготовить данные при старте. Проверьте, что база данных запущена "
                     + "и что настройки DB_* и ADMIN_* в файле .env верные. Причина: " + e);
@@ -90,11 +73,4 @@ public class StartupData {
         authService.createAdminIfMissing(admin);
     }
 
-    private static List<StudentRequest> readDemoStudents() {
-        try (InputStream json = StartupData.class.getResourceAsStream("/demo-students.json")) {
-            return List.of(JsonConfig.JSONB.fromJson(json, StudentRequest[].class));
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-    }
 }

@@ -43,10 +43,6 @@ public class RefreshToken {
         return id;
     }
 
-    public String getJti() {
-        return jti;
-    }
-
     public void setJti(String jti) {
         this.jti = jti;
     }
@@ -57,10 +53,6 @@ public class RefreshToken {
 
     public void setUser(User user) {
         this.user = user;
-    }
-
-    public LocalDateTime getExpiresAt() {
-        return expiresAt;
     }
 
     public void setExpiresAt(LocalDateTime expiresAt) {

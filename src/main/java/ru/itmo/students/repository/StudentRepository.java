@@ -74,10 +74,6 @@ public class StudentRepository {
         return query.getSingleResult();
     }
 
-    public long countAll() {
-        return em.createQuery("SELECT COUNT(s) FROM Student s", Long.class).getSingleResult();
-    }
-
     /**
      * Собирает условие WHERE из непустых фильтров.
      * Значения передаются параметрами (:group), а не вклеиваются в текст запроса.

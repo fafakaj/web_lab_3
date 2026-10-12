@@ -89,16 +89,6 @@ public class StudentService {
         LOG.info("Удалён студент " + isuId);
     }
 
-    /** Демо-данные при первом запуске: только если таблица пуста. */
-    @Transactional
-    public void loadDemoIfEmpty(List<StudentRequest> students) {
-        if (repository.countAll() > 0) {
-            return;
-        }
-        students.forEach(this::create);
-        LOG.info("Загружены демо-данные: " + students.size() + " студентов");
-    }
-
     private Student findOrThrow(String isuId) {
         return repository.findById(isuId)
                 .orElseThrow(() -> new ResourceNotFoundException("Студент с ИСУ " + isuId + " не найден"));
