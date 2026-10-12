@@ -662,9 +662,7 @@ BCrypt.checkpw(password, hash);              // при входе: соль бе
 **Как устроено в проекте** (принцип 12-factor app: настройки — в переменных окружения):
 
 ```
-.env  ──►  docker compose        (DB_NAME, DB_USER, DB_PASSWORD -> PostgreSQL)
-  │
-  └──►  liberty-maven-plugin копирует в server.env  ──►  переменные окружения сервера
+.env  ──►  liberty-maven-plugin копирует в server.env  ──►  переменные окружения сервера
                                                           │
                 ┌─────────────────────────────────────────┤
                 ▼                                         ▼

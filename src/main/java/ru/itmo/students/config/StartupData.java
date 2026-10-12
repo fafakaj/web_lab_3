@@ -73,7 +73,7 @@ public class StartupData {
             }
         } catch (RuntimeException e) {
             LOG.severe("Приложение не смогло подготовить данные при старте. Проверьте, что база данных запущена "
-                    + "(docker compose up -d) и что настройки DB_* и ADMIN_* в файле .env верные. Причина: " + e);
+                    + "и что настройки DB_* и ADMIN_* в файле .env верные. Причина: " + e);
             throw e;
         }
     }
