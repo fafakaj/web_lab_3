@@ -437,38 +437,6 @@
           }
         },
         {
-          "name": "Один студент",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Статус 200\", function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/requests/412345",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "requests",
-                "412345"
-              ]
-            },
-            "description": "Студент по номеру ИСУ."
-          }
-        },
-        {
           "name": "Создать студента",
           "event": [
             {
@@ -520,6 +488,38 @@
                 }
               }
             }
+          }
+        },
+        {
+          "name": "Один студент",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/requests/415001",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "requests",
+                "415001"
+              ]
+            },
+            "description": "Только что созданный студент по номеру ИСУ."
           }
         },
         {

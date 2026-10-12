@@ -106,7 +106,7 @@ The defaultServer server is ready to run a smarter planet.
 - **ADMIN** создаётся при первом запуске из `.env`: логин `admin`, пароль `admin12345`.
 - **USER** — любой пользователь, который зарегистрировался на странице «Регистрация» или через `POST /api/auth/register`.
 
-В базе сразу есть 25 студентов (из лабораторной работы №2 и новые), чтобы были видны страницы списка. Их добавляет `schema.sql`.
+После первого запуска база пустая. Добавьте студентов на странице «Добавить студента» или через `POST /api/requests`.
 
 ---
 
@@ -121,7 +121,7 @@ web_lab_3/
     liberty/config/server.xml настройки сервера: функции Jakarta EE, порт, подключение к БД, логи
     resources/
       META-INF/persistence.xml  настройки JPA: источник данных, скрипт схемы
-      META-INF/sql/schema.sql   таблицы, первичные и внешние ключи, 25 студентов
+      META-INF/sql/schema.sql   таблицы, первичные и внешние ключи
     java/ru/itmo/students/
       StudentsApplication.java  точка входа REST API (/api) и описание для Swagger
       resource/     контроллеры: HTTP-запрос -> вызов сервиса -> ответ

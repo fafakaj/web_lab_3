@@ -121,9 +121,6 @@ Content-Type: application/json
 
 Схема — в `src/main/resources/META-INF/sql/schema.sql`. EclipseLink выполняет этот скрипт при каждом
 старте (настройка в `persistence.xml`). `CREATE TABLE IF NOT EXISTS` не трогает уже созданные таблицы.
-В конце скрипта команда `INSERT ... WHERE NOT EXISTS (SELECT 1 FROM students)` добавляет 25 студентов
-для примера, только если таблица пустая, то есть при первом запуске. Удалённые студенты после
-перезапуска не возвращаются.
 
 ```
 students                     users                          refresh_tokens
