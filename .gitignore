@@ -1,10 +1,7 @@
-# Сборка Maven и сервер Open Liberty
 target/
 
-# Настройки с паролями — в git только .env.example
 .env
 
-# IDE
 .idea/
 .vscode/
 *.iml
