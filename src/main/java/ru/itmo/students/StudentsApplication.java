@@ -7,10 +7,6 @@ import org.eclipse.microprofile.openapi.annotations.enums.SecuritySchemeType;
 import org.eclipse.microprofile.openapi.annotations.info.Info;
 import org.eclipse.microprofile.openapi.annotations.security.SecurityScheme;
 
-/**
- * Точка входа Jakarta REST: все ресурсы доступны по адресам /api/...
- * Аннотации OpenAPI описывают API для Swagger UI (/openapi/ui) и кнопку Authorize для JWT.
- */
 @ApplicationPath("/api")
 @OpenAPIDefinition(info = @Info(
         title = "Система управления студентами общежития",

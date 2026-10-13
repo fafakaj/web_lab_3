@@ -319,8 +319,6 @@ button:hover, .button:hover {
     }
 }
 
-/* Лабораторная работа №3: вход, пользователь в шапке, страницы списка */
-
 [hidden] {
     display: none !important;
 }

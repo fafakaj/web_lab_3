@@ -17,14 +17,8 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 
-/**
- * Выпуск и проверка JWT.
- * Токен подписан алгоритмом HS256 секретом JWT_SECRET из окружения:
- * кто не знает секрет, не может подделать токен.
- */
 @ApplicationScoped
 public class JwtService {
-
     private static final String ISSUER = "web_lab_3";
     private static final String ROLE_CLAIM = "role";
     private static final String TYPE_CLAIM = "type";
@@ -46,7 +40,6 @@ public class JwtService {
 
     @PostConstruct
     void init() {
-        // HS256 требует ключ не короче 256 бит = 32 байта
         if (secret.getBytes(StandardCharsets.UTF_8).length < 32) {
             throw new IllegalStateException("JWT_SECRET должен быть не короче 32 символов");
         }
@@ -66,7 +59,6 @@ public class JwtService {
                 .sign(algorithm);
     }
 
-    /** jti — уникальный номер токена; по нему refresh-токен ищется в БД. */
     public String createRefreshToken(User user, String jti, Instant expiresAt) {
         return JWT.create()
                 .withIssuer(ISSUER)
@@ -78,10 +70,6 @@ public class JwtService {
                 .sign(algorithm);
     }
 
-    /**
-     * Проверяет подпись, издателя, срок действия и тип токена.
-     * При любой ошибке бросает UnauthorizedException (ответ 401).
-     */
     public DecodedJWT verify(String token, TokenType expectedType) {
         DecodedJWT jwt;
         try {

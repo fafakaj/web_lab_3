@@ -1,6 +1,3 @@
-// Сессия пользователя в браузере: токены и данные пользователя лежат в localStorage.
-// localStorage живёт, пока его не очистят, поэтому вход сохраняется после закрытия вкладки.
-
 const ACCESS_TOKEN_KEY = "access_token";
 const REFRESH_TOKEN_KEY = "refresh_token";
 const USER_KEY = "user";
@@ -30,8 +27,6 @@ function getCurrentUser() {
     return saved === null ? null : JSON.parse(saved);
 }
 
-// Роль нужна только чтобы спрятать лишние кнопки. Права всё равно проверяет сервер:
-// если USER вызовет удаление вручную, сервер ответит 403
 function isAdmin() {
     const user = getCurrentUser();
     return user !== null && user.role === "ADMIN";
@@ -42,7 +37,6 @@ function goToLogin() {
     window.location.href = "login.html?next=" + encodeURIComponent(here);
 }
 
-// Вызывается в начале каждой закрытой страницы: без входа — на страницу входа
 function requireLogin() {
     if (getAccessToken() === null) {
         goToLogin();
@@ -51,7 +45,6 @@ function requireLogin() {
     return true;
 }
 
-// Шапка: кто вошёл, кнопка «Выйти»; элементы с классом admin-only видит только ADMIN
 function setupHeader() {
     const user = getCurrentUser();
     const panel = document.querySelector("#user-panel");

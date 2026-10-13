@@ -2,11 +2,7 @@ package ru.itmo.students.dto;
 
 import ru.itmo.students.entity.Student;
 
-/**
- * Перекладывает данные между сущностью Student (таблица БД) и DTO (JSON API).
- */
 public final class StudentMapper {
-
     private StudentMapper() {
     }
 
@@ -23,7 +19,6 @@ public final class StudentMapper {
                 student.getNotes());
     }
 
-    /** Копирует в сущность все поля, кроме ИСУ: ИСУ — первичный ключ, он не меняется. */
     public static void copyToEntity(StudentRequest request, Student student) {
         student.setFullName(request.fullName());
         student.setGroup(request.group());

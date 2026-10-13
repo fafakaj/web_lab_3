@@ -5,9 +5,6 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
-/**
- * Тело POST /api/auth/register. Роль не передаётся: новый пользователь всегда получает USER.
- */
 public record RegisterRequest(
         @NotNull(message = "Обязательное поле")
         @Pattern(regexp = "[a-z0-9_]{3,32}",
@@ -25,7 +22,6 @@ public record RegisterRequest(
                 message = "Пароль должен содержать хотя бы одну букву и одну цифру")
         String password
 ) {
-    /** Логин и почта не зависят от регистра: Admin и admin — один пользователь. */
     public RegisterRequest {
         username = username == null ? null : username.strip().toLowerCase();
         email = email == null ? null : email.strip().toLowerCase();

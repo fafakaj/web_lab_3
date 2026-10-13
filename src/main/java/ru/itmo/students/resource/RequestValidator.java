@@ -15,13 +15,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Проверяет DTO по аннотациям Bean Validation (@NotNull, @Pattern, @Size).
- * Все нарушения собираются в один ответ 422: клиент сразу видит все ошибочные поля.
- */
 @ApplicationScoped
 public class RequestValidator {
-
     @Inject
     Validator validator;
 
@@ -35,7 +30,6 @@ public class RequestValidator {
             return;
         }
 
-        // Одно сообщение на поле: если не прошли и @Size, и @Pattern, показываем одно
         Map<String, String> messages = new LinkedHashMap<>();
         for (ConstraintViolation<Object> violation : violations) {
             messages.putIfAbsent(fieldName(violation.getPropertyPath()), violation.getMessage());
@@ -47,7 +41,6 @@ public class RequestValidator {
         throw new DataValidationException(details);
     }
 
-    /** Имя поля Java -> имя поля в JSON: fullName -> full_name. */
     private static String fieldName(Path path) {
         String name = "";
         for (Path.Node node : path) {

@@ -9,13 +9,8 @@ import ru.itmo.students.dto.ErrorResponse;
 
 import java.util.List;
 
-/**
- * Ошибки, которые бросает сам Jakarta REST до вызова нашего кода:
- * неизвестный адрес, неподходящий метод, не тот Content-Type, битый JSON.
- */
 @Provider
 public class WebApplicationExceptionMapper implements ExceptionMapper<WebApplicationException> {
-
     @Override
     public Response toResponse(WebApplicationException e) {
         int status = e.getResponse().getStatus();
@@ -53,7 +48,6 @@ public class WebApplicationExceptionMapper implements ExceptionMapper<WebApplica
                 .type(MediaType.APPLICATION_JSON)
                 .entity(ErrorResponse.of(status, code, message, List.of()));
 
-        // Для 405 оставляем заголовок Allow: в нём список разрешённых методов
         String allow = e.getResponse().getHeaderString("Allow");
         if (allow != null) {
             response.header("Allow", allow);

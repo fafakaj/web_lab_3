@@ -10,14 +10,9 @@ import jakarta.ws.rs.ext.Provider;
 import java.security.Principal;
 import java.util.logging.Logger;
 
-/**
- * Пишет в лог каждый запрос к API: метод, адрес, статус ответа, время и пользователя.
- * Пример строки: GET /api/requests?page=1 -> 200 (12 мс, пользователь: admin)
- */
 @Provider
 @PreMatching
 public class RequestLogFilter implements ContainerRequestFilter, ContainerResponseFilter {
-
     private static final Logger LOG = Logger.getLogger(RequestLogFilter.class.getName());
     private static final String START_TIME = "request-start-time";
 

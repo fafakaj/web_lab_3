@@ -9,13 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-/**
- * Query-параметры GET /api/requests?group=M3301&page=2.
- * В адресе всё — строки, поэтому здесь проверяется только, что строку можно перевести
- * в число или true/false. Остальные правила — в StudentFilter.
- */
 public class StudentQueryParams {
-
     private static final Set<String> KNOWN_NAMES = Set.of(
             "full_name", "group", "dormitory", "room", "is_foreign", "living", "sort", "order", "page", "size");
 
@@ -56,7 +50,6 @@ public class StudentQueryParams {
     @Context
     UriInfo uriInfo;
 
-    /** Параметры, которых API не знает (например, ?foo=1). Опечатка не должна молча игнорироваться. */
     public List<ErrorDetail> findUnknownParams() {
         List<ErrorDetail> unknown = new ArrayList<>();
         for (String name : uriInfo.getQueryParameters().keySet()) {

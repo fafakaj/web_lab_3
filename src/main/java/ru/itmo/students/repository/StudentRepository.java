@@ -13,15 +13,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-/**
- * Доступ к таблице students через JPA (реализация — EclipseLink).
- * Запросы пишутся на JPQL: это SQL, но по классам и полям Java, а не по таблицам.
- */
 @ApplicationScoped
 public class StudentRepository {
-
-    // Имя поля сортировки из API -> поле сущности. Только эти значения попадают в ORDER BY:
-    // произвольную строку от клиента в запрос вставлять нельзя (SQL-инъекция)
     private static final Map<String, String> SORT_FIELDS = Map.of(
             "isu_id", "s.isuId",
             "full_name", "s.fullName",
@@ -50,12 +43,10 @@ public class StudentRepository {
         em.remove(student);
     }
 
-    /** Одна страница студентов, подходящих под фильтр, в нужном порядке. */
     public List<Student> find(StudentFilter filter) {
         Map<String, Object> params = new HashMap<>();
         String orderBy = SORT_FIELDS.get(filter.sort()) + ("desc".equals(filter.order()) ? " DESC" : " ASC");
 
-        // Второй ключ сортировки — ИСУ: порядок одинаковых значений не «прыгает» между страницами
         String jpql = "SELECT s FROM Student s" + where(filter, params) + " ORDER BY " + orderBy + ", s.isuId";
 
         TypedQuery<Student> query = em.createQuery(jpql, Student.class);
@@ -66,7 +57,6 @@ public class StudentRepository {
                 .getResultList();
     }
 
-    /** Сколько всего студентов подходит под фильтр — для номеров страниц. */
     public long count(StudentFilter filter) {
         Map<String, Object> params = new HashMap<>();
         TypedQuery<Long> query = em.createQuery("SELECT COUNT(s) FROM Student s" + where(filter, params), Long.class);
@@ -74,10 +64,6 @@ public class StudentRepository {
         return query.getSingleResult();
     }
 
-    /**
-     * Собирает условие WHERE из непустых фильтров.
-     * Значения передаются параметрами (:group), а не вклеиваются в текст запроса.
-     */
     private static String where(StudentFilter filter, Map<String, Object> params) {
         List<String> conditions = new ArrayList<>();
 

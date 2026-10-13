@@ -11,14 +11,9 @@ import jakarta.persistence.Table;
 
 import java.time.LocalDateTime;
 
-/**
- * Пользователь системы — строка таблицы users.
- * Пароль хранится только как хеш BCrypt.
- */
 @Entity
 @Table(name = "users")
 public class User {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -32,7 +27,6 @@ public class User {
     @Column(name = "password_hash", nullable = false, length = 60)
     private String passwordHash;
 
-    // В БД роль хранится текстом: "ADMIN" или "USER"
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 10)
     private Role role;

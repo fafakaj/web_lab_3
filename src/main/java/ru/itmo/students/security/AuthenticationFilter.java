@@ -10,16 +10,9 @@ import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.ext.Provider;
 import ru.itmo.students.exception.UnauthorizedException;
 
-/**
- * Аутентификация — «кто это?».
- * Читает заголовок Authorization: Bearer <access-токен>, проверяет токен
- * и запоминает в запросе логин и роль пользователя.
- * Запрос без заголовка проходит дальше как анонимный: пускать его или нет, решает AuthorizationFilter.
- */
 @Provider
 @Priority(Priorities.AUTHENTICATION)
 public class AuthenticationFilter implements ContainerRequestFilter {
-
     private static final String BEARER_PREFIX = "Bearer ";
 
     @Inject

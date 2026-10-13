@@ -7,14 +7,9 @@ import jakarta.persistence.Table;
 
 import java.time.LocalDate;
 
-/**
- * Студент общежития — строка таблицы students.
- * Первичный ключ — номер ИСУ, как в лабораторной работе №2.
- */
 @Entity
 @Table(name = "students")
 public class Student {
-
     @Id
     @Column(name = "isu_id", length = 6)
     private String isuId;
@@ -22,7 +17,6 @@ public class Student {
     @Column(name = "full_name", nullable = false, length = 100)
     private String fullName;
 
-    // "group" — зарезервированное слово SQL, поэтому столбец называется group_name
     @Column(name = "group_name", nullable = false, length = 5)
     private String group;
 
@@ -35,7 +29,6 @@ public class Student {
     @Column(name = "check_in", nullable = false)
     private LocalDate checkIn;
 
-    // null — студент ещё проживает
     @Column(name = "check_out")
     private LocalDate checkOut;
 

@@ -15,18 +15,9 @@ import ru.itmo.students.exception.UnauthorizedException;
 
 import java.lang.reflect.Method;
 
-/**
- * Авторизация — «что ему можно?».
- * Работает после выбора метода ресурса и читает его аннотации через рефлексию:
- * - @PermitAll — пускать всех, даже без токена;
- * - @RolesAllowed({"ADMIN"}) — пускать только эти роли.
- * Аннотация на методе важнее аннотации на классе. Нет ни одной — нужен любой вошедший пользователь.
- * Без токена — 401, токен есть, но роль не та — 403.
- */
 @Provider
 @Priority(Priorities.AUTHORIZATION)
 public class AuthorizationFilter implements ContainerRequestFilter {
-
     @Context
     ResourceInfo resourceInfo;
 

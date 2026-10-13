@@ -2,7 +2,6 @@ const loginForm = document.querySelector("#login-form");
 const errorBox = document.querySelector("#form-error");
 const submitButton = loginForm.querySelector("button[type='submit']");
 
-// Куда вернуться после входа. Только адрес этого же сайта: «/...», но не «//чужой-сайт»
 function getNextPage() {
     const next = new URLSearchParams(window.location.search).get("next");
 
@@ -29,7 +28,6 @@ async function onSubmit(event) {
     window.location.href = getNextPage();
 }
 
-// Уже вошли — сразу к списку
 if (getAccessToken() !== null) {
     window.location.href = getNextPage();
 }

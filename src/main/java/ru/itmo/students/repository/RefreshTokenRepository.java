@@ -8,12 +8,8 @@ import ru.itmo.students.entity.User;
 
 import java.util.Optional;
 
-/**
- * Доступ к таблице refresh_tokens.
- */
 @ApplicationScoped
 public class RefreshTokenRepository {
-
     @PersistenceContext(unitName = "students")
     private EntityManager em;
 
@@ -28,7 +24,6 @@ public class RefreshTokenRepository {
         em.persist(token);
     }
 
-    /** Отзывает все токены пользователя: нужно, если кто-то повторно прислал уже использованный токен. */
     public void revokeAllOf(User user) {
         em.createQuery("UPDATE RefreshToken t SET t.revoked = true WHERE t.user = :user")
                 .setParameter("user", user)

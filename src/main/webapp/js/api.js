@@ -2,7 +2,6 @@ const API_URL = "/api/requests";
 const AUTH_URL = "/api/auth";
 const QUERY_THRESHOLD = 3;
 
-// Фильтры списка. По их числу выбирается метод: до трёх — GET, больше — QUERY
 const FILTER_NAMES = ["full_name", "group", "dormitory", "room", "is_foreign", "living"];
 
 const DORMITORIES = {
@@ -34,7 +33,6 @@ async function readError(response) {
     }
 }
 
-// Один HTTP-запрос. Если есть access-токен, он уходит в заголовке Authorization
 async function send(method, url, body, token) {
     const options = { method: method, headers: {} };
 
@@ -54,8 +52,6 @@ async function send(method, url, body, token) {
     }
 }
 
-// Обновление токенов по refresh-токену. Если два запроса одновременно получили 401,
-// обновление всё равно выполнится один раз: старый refresh-токен после обмена уже недействителен
 let refreshInProgress = null;
 
 function refreshTokens() {
@@ -84,8 +80,6 @@ async function doRefresh() {
     return true;
 }
 
-// Запрос к защищённому API. Access-токен живёт 15 минут: если сервер ответил 401,
-// пробуем один раз обновить токены и повторить запрос. Не вышло — на страницу входа
 async function request(method, url, body) {
     let response = await send(method, url, body, getAccessToken());
 
@@ -110,7 +104,6 @@ async function request(method, url, body) {
     return response.json();
 }
 
-// Запросы без токена: вход и регистрация
 async function publicRequest(method, url, body) {
     const response = await send(method, url, body);
 
@@ -133,7 +126,6 @@ async function register(data) {
     return publicRequest("POST", AUTH_URL + "/register", data);
 }
 
-// Выход: сервер отзывает refresh-токен, браузер забывает оба токена
 async function logout() {
     const refreshToken = getRefreshToken();
 
@@ -142,7 +134,6 @@ async function logout() {
             await publicRequest("POST", AUTH_URL + "/logout", { refresh_token: refreshToken });
         }
     } catch (error) {
-        // Токен уже недействителен — на сервере отзывать нечего
     }
 
     clearSession();
@@ -152,7 +143,6 @@ function studentUrl(isu) {
     return API_URL + "/" + encodeURIComponent(isu);
 }
 
-// Ответ — страница: { items, page, size, total }
 async function getStudents(params) {
     const active = {};
 
@@ -183,7 +173,6 @@ async function createStudent(data) {
     return request("POST", API_URL, data);
 }
 
-// Форма редактирования отправляет все поля, поэтому это полное изменение — PUT
 async function updateStudent(isu, data) {
     return request("PUT", studentUrl(isu), data);
 }

@@ -172,7 +172,6 @@ function markSubmitted() {
     studentForm.classList.add("was-submitted");
 }
 
-// Добавлять и изменять студентов может только ADMIN. Сервер всё равно проверит роль сам
 function showNoAccess() {
     document.querySelector("main").textContent = "Добавлять и изменять студентов может только администратор.";
 }

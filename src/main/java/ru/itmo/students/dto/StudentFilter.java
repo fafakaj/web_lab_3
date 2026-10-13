@@ -6,13 +6,8 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
-/**
- * Параметры списка студентов: фильтры, сортировка и страница.
- * В GET приходят как query-параметры (см. StudentQueryParams), в QUERY — как JSON-тело.
- * Все поля необязательные; пустые фильтры не применяются.
- */
 public record StudentFilter(
-        // Поиск по части ФИО без учёта регистра
+
         @JsonbProperty("full_name")
         @Size(min = 2, max = 100, message = StudentFilter.NAME_HINT)
         @Pattern(regexp = "[A-Za-zА-ЯЁа-яё' \\-]+", message = StudentFilter.NAME_HINT)
@@ -30,7 +25,6 @@ public record StudentFilter(
         @JsonbProperty("is_foreign")
         Boolean isForeign,
 
-        // true — ещё проживает (check_out пустой), false — уже выселен
         Boolean living,
 
         @Pattern(regexp = "isu_id|full_name|group|dormitory|room|check_in|check_out",
@@ -49,7 +43,6 @@ public record StudentFilter(
 ) {
     static final String NAME_HINT = "ФИО в фильтре — от 2 до 100 символов: буквы, пробел, дефис или апостроф";
 
-    /** Значения по умолчанию: сортировка по ФИО, по возрастанию, первая страница по 10 записей. */
     public StudentFilter {
         fullName = StudentRequest.collapseSpaces(fullName);
         group = group == null ? null : group.strip().toUpperCase();

@@ -12,17 +12,8 @@ import jakarta.ws.rs.ext.Provider;
 
 import java.lang.reflect.Type;
 
-/**
- * Настройка JSON-B (объект <-> JSON) для всего API.
- * По умолчанию JSON-B «мягкий»: число 412345 молча станет строкой "412345",
- * "yes" — значением false, а лишние поля просто пропадут. Как в лабораторной работе №2,
- * такие данные надо отклонять, поэтому здесь:
- * - строки принимаются только из JSON-строк, логические значения — только из true/false;
- * - неизвестное поле — ошибка.
- */
 @Provider
 public class JsonConfig implements ContextResolver<Jsonb> {
-
     public static final Jsonb JSONB = JsonbBuilder.create(new JsonbConfig()
             .withDeserializers(new StrictStringDeserializer(), new StrictBooleanDeserializer())
             .setProperty("jsonb.fail-on-unknown-properties", true));

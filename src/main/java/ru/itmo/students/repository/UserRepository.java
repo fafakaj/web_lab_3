@@ -7,12 +7,8 @@ import ru.itmo.students.entity.User;
 
 import java.util.Optional;
 
-/**
- * Доступ к таблице users.
- */
 @ApplicationScoped
 public class UserRepository {
-
     @PersistenceContext(unitName = "students")
     private EntityManager em;
 
@@ -36,7 +32,7 @@ public class UserRepository {
 
     public void save(User user) {
         em.persist(user);
-        // id выдаёт сама БД (IDENTITY), поэтому INSERT выполняем сразу, чтобы id появился в объекте
+
         em.flush();
     }
 }

@@ -4,12 +4,7 @@ import ru.itmo.students.dto.ErrorDetail;
 
 import java.util.List;
 
-/**
- * Базовый класс ошибок приложения. Каждый наследник знает свой HTTP-статус и код.
- * Сервисы бросают эти исключения, а ApiExceptionMapper превращает их в ответ.
- */
 public abstract class ApiException extends RuntimeException {
-
     private final int status;
     private final String code;
     private final List<ErrorDetail> details;

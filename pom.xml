@@ -15,7 +15,7 @@
     </properties>
 
     <dependencies>
-        <!-- API Jakarta EE и MicroProfile: реализации уже есть в Open Liberty, поэтому scope provided -->
+
         <dependency>
             <groupId>jakarta.platform</groupId>
             <artifactId>jakarta.jakartaee-api</artifactId>
@@ -35,7 +35,6 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- Библиотеки, которых в сервере нет: попадут внутрь WAR -->
         <dependency>
             <groupId>com.auth0</groupId>
             <artifactId>java-jwt</artifactId>
@@ -47,7 +46,6 @@
             <version>0.4</version>
         </dependency>
 
-        <!-- JDBC-драйвер PostgreSQL: Liberty берёт его из папки сервера (см. copyDependencies ниже) -->
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
@@ -70,7 +68,7 @@
                 <artifactId>liberty-maven-plugin</artifactId>
                 <version>3.11.1</version>
                 <configuration>
-                    <!-- Переменные окружения сервера берутся из файла .env в корне проекта -->
+
                     <serverEnvFile>${project.basedir}/.env</serverEnvFile>
                     <copyDependencies>
                         <dependencyGroup>

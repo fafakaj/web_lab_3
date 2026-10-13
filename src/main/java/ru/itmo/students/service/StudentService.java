@@ -19,14 +19,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.logging.Logger;
 
-/**
- * Бизнес-логика работы со студентами — те же правила, что в лабораторной работе №2:
- * уникальность ИСУ, проверка дат заселения и выселения.
- * Сервис не знает про HTTP: он получает DTO и бросает исключения, а в ответ их превращают мапперы.
- */
 @ApplicationScoped
 public class StudentService {
-
     private static final Logger LOG = Logger.getLogger(StudentService.class.getName());
 
     private static final LocalDate EARLIEST_CHECK_IN = LocalDate.of(2000, 1, 1);
@@ -67,7 +61,6 @@ public class StudentService {
         return StudentMapper.toResponse(student);
     }
 
-    /** Полное изменение (PUT): все поля заменяются новыми. PATCH тоже приходит сюда, уже слитый с текущими данными. */
     @Transactional
     public StudentResponse replace(String isuId, StudentRequest request) {
         if (request.isuId() != null && !request.isuId().equals(isuId)) {
@@ -78,7 +71,6 @@ public class StudentService {
         checkDates(request.checkIn(), request.checkOut());
         StudentMapper.copyToEntity(request, student);
 
-        // Сущность «управляемая»: изменения полей сами запишутся в БД при завершении транзакции
         LOG.info("Изменён студент " + isuId);
         return StudentMapper.toResponse(student);
     }
@@ -94,11 +86,6 @@ public class StudentService {
                 .orElseThrow(() -> new ResourceNotFoundException("Студент с ИСУ " + isuId + " не найден"));
     }
 
-    /**
-     * Правила дат из лабораторной работы №2:
-     * заселение — от 01.01.2000 и не позже чем через год от сегодня;
-     * выселение — позже заселения и не позже чем через 9 лет после него.
-     */
     private static void checkDates(LocalDate checkIn, LocalDate checkOut) {
         LocalDate latestCheckIn = LocalDate.now().plusYears(1);
 

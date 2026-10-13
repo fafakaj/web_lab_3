@@ -3,7 +3,6 @@
              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
              xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence https://jakarta.ee/xml/ns/persistence/persistence_3_0.xsd">
 
-    <!-- JTA: транзакциями управляет сервер, в коде достаточно @Transactional -->
     <persistence-unit name="students" transaction-type="JTA">
         <jta-data-source>jdbc/studentsDS</jta-data-source>
 
@@ -13,7 +12,7 @@
         <exclude-unlisted-classes>true</exclude-unlisted-classes>
 
         <properties>
-            <!-- При старте выполнить SQL-скрипт со схемой: таблицы, первичные и внешние ключи -->
+
             <property name="jakarta.persistence.schema-generation.database.action" value="create"/>
             <property name="jakarta.persistence.schema-generation.create-source" value="script"/>
             <property name="jakarta.persistence.schema-generation.create-script-source" value="META-INF/sql/schema.sql"/>

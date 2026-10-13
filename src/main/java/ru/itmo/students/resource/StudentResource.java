@@ -37,11 +37,6 @@ import java.io.StringReader;
 import java.net.URI;
 import java.util.List;
 
-/**
- * REST API студентов — тот же контракт, что в лабораторной работе №2, плюс PUT, сортировка и страницы.
- * Читать (GET, QUERY) могут USER и ADMIN, изменять (POST, PUT, PATCH, DELETE) — только ADMIN.
- * Ресурс только принимает HTTP-запрос, проверяет формат и зовёт сервис. Бизнес-логики здесь нет.
- */
 @Path("/requests")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -49,7 +44,6 @@ import java.util.List;
 @Tag(name = "Студенты")
 @SecurityRequirement(name = "bearerAuth")
 public class StudentResource {
-
     private static final String ISU_PATTERN = "[0-9]{6}";
 
     @Inject
@@ -72,7 +66,6 @@ public class StudentResource {
         return service.find(filter);
     }
 
-    // В Swagger UI метода QUERY нет: Swagger знает только стандартные методы. Проверяйте его в Postman
     @QUERY
     @Operation(hidden = true)
     public PageResponse<StudentResponse> query(StudentFilter filter) {
@@ -95,7 +88,6 @@ public class StudentResource {
         validator.validate(request);
         StudentResponse created = service.create(request);
 
-        // 201 Created и заголовок Location — адрес новой записи
         URI location = uriInfo.getAbsolutePathBuilder().path(created.isuId()).build();
         return Response.created(location).entity(created).build();
     }
@@ -110,12 +102,6 @@ public class StudentResource {
         return service.replace(isuId, request);
     }
 
-    /**
-     * Частичное изменение: в теле только поля, которые меняются.
-     * Тело читается как JSON-объект без перевода в DTO: так видно разницу между «поля нет» и «поле равно null»
-     * ("check_out": null — студент снова проживает). Изменения накладываются на текущие данные
-     * по правилам JSON Merge Patch (RFC 7396), а результат проверяется как обычный PUT.
-     */
     @PATCH
     @Path("/{isu_id}")
     @RolesAllowed("ADMIN")

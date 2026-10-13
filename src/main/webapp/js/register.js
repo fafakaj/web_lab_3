@@ -13,7 +13,6 @@ function clearErrors() {
     });
 }
 
-// Ошибки сервера (422, 409) показываем под нужными полями
 function showServerError(error) {
     if (error.details.length === 0) {
         errorBox.textContent = error.message;
@@ -51,7 +50,7 @@ async function onSubmit(event) {
 
     try {
         await register(data);
-        // После регистрации сразу входим тем же логином и паролем
+
         await login(data.username, data.password);
     } catch (error) {
         submitButton.disabled = false;

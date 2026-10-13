@@ -1,19 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <server description="web_lab_3">
 
-    <!-- Какие части Jakarta EE и MicroProfile включить в сервере -->
     <featureManager>
-        <feature>restfulWS-3.1</feature>      <!-- Jakarta REST: @Path, @GET, фильтры, ExceptionMapper -->
-        <feature>jsonb-3.0</feature>          <!-- JSON-B: объект <-> JSON -->
-        <feature>jsonp-2.1</feature>          <!-- JSON-P: JsonObject для PATCH -->
-        <feature>cdi-4.0</feature>            <!-- CDI: @Inject, @ApplicationScoped -->
-        <feature>persistence-3.1</feature>    <!-- JPA, реализация в Liberty — EclipseLink -->
-        <feature>beanValidation-3.0</feature> <!-- @NotNull, @Pattern, @Size -->
-        <feature>mpConfig-3.1</feature>       <!-- @ConfigProperty: настройки из переменных окружения -->
-        <feature>mpOpenAPI-4.0</feature>      <!-- Swagger UI по адресу /openapi/ui -->
+        <feature>restfulWS-3.1</feature>
+        <feature>jsonb-3.0</feature>
+        <feature>jsonp-2.1</feature>
+        <feature>cdi-4.0</feature>
+        <feature>persistence-3.1</feature>
+        <feature>beanValidation-3.0</feature>
+        <feature>mpConfig-3.1</feature>
+        <feature>mpOpenAPI-4.0</feature>
     </featureManager>
 
-    <!-- Значения по умолчанию. Переменная окружения с тем же именем (из .env) их заменяет -->
     <variable name="HTTP_PORT" defaultValue="8080"/>
     <variable name="DB_HOST" defaultValue="localhost"/>
     <variable name="DB_PORT" defaultValue="5432"/>
@@ -23,23 +21,17 @@
 
     <httpEndpoint id="defaultHttpEndpoint" host="*" httpPort="${HTTP_PORT}" httpsPort="-1"/>
 
-    <!-- Драйвер PostgreSQL кладёт в папку jdbc плагин Maven (copyDependencies в pom.xml) -->
     <library id="postgresLib">
         <fileset dir="${server.config.dir}/jdbc" includes="*.jar"/>
     </library>
 
-    <!-- Подключение к БД. Приложение находит его по имени jdbc/studentsDS (persistence.xml) -->
     <dataSource id="studentsDS" jndiName="jdbc/studentsDS">
         <jdbcDriver libraryRef="postgresLib"/>
         <properties.postgresql serverName="${DB_HOST}" portNumber="${DB_PORT}" databaseName="${DB_NAME}"
                                user="${DB_USER}" password="${DB_PASSWORD}"/>
     </dataSource>
 
-    <!-- contextRoot="/": фронтенд открывается по http://localhost:8080/, API — по /api -->
     <webApplication location="web_lab_3.war" contextRoot="/"/>
 
-    <!-- Логи приложения (java.util.logging) уровня INFO и выше идут в консоль и в messages.log.
-         FFDC1015I скрыт: Liberty пишет его на каждое наше исключение (404, 409, 422), вышедшее из
-         @Transactional-метода, хотя это обычный ответ клиенту. Настоящие ошибки пишет UnexpectedExceptionMapper -->
     <logging consoleLogLevel="INFO" consoleFormat="SIMPLE" hideMessage="FFDC1015I"/>
 </server>

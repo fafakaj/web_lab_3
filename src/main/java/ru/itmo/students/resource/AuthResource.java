@@ -22,16 +22,12 @@ import ru.itmo.students.dto.TokenResponse;
 import ru.itmo.students.dto.UserResponse;
 import ru.itmo.students.service.AuthService;
 
-/**
- * Регистрация, вход и токены. Эти адреса открыты всем (@PermitAll), кроме /me.
- */
 @Path("/auth")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @PermitAll
 @Tag(name = "Авторизация")
 public class AuthResource {
-
     @Inject
     AuthService service;
 

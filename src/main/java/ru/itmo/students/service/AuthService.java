@@ -27,15 +27,10 @@ import java.time.ZoneOffset;
 import java.util.UUID;
 import java.util.logging.Logger;
 
-/**
- * Регистрация, вход, обновление токенов и выход.
- */
 @ApplicationScoped
 public class AuthService {
-
     private static final Logger LOG = Logger.getLogger(AuthService.class.getName());
 
-    // BCrypt учитывает только первые 72 байта пароля, остальное молча отбрасывает
     private static final int BCRYPT_MAX_BYTES = 72;
 
     @Inject
@@ -50,7 +45,6 @@ public class AuthService {
     @Inject
     JwtService jwtService;
 
-    /** Новый пользователь всегда получает роль USER. */
     @Transactional
     public UserResponse register(RegisterRequest request) {
         User user = createUser(request, Role.USER);
@@ -64,7 +58,6 @@ public class AuthService {
                 .filter(found -> passwordHasher.matches(request.password(), found.getPasswordHash()))
                 .orElse(null);
 
-        // Одно сообщение и для чужого логина, и для неверного пароля: так нельзя узнать, какие логины существуют
         if (user == null) {
             LOG.warning("Неудачный вход: " + request.username());
             throw new UnauthorizedException("Неверный логин или пароль");
@@ -74,11 +67,6 @@ public class AuthService {
         return issueTokens(user);
     }
 
-    /**
-     * Обмен refresh-токена на новую пару токенов. Старый refresh-токен при этом отзывается (ротация).
-     * Если пришёл уже отозванный токен, его, скорее всего, украли: отзываем все токены пользователя.
-     * dontRollbackOn: при этой ошибке отзыв токенов всё равно должен сохраниться в БД.
-     */
     @Transactional(dontRollbackOn = UnauthorizedException.class)
     public TokenResponse refresh(String token) {
         RefreshToken stored = findRefreshToken(token);
@@ -106,7 +94,6 @@ public class AuthService {
                 .orElseThrow(() -> new UnauthorizedException("Пользователь не найден"));
     }
 
-    /** Администратор из .env создаётся при первом запуске. Если он уже есть, ничего не меняется. */
     @Transactional
     public void createAdminIfMissing(RegisterRequest admin) {
         if (users.existsByUsername(admin.username())) {
@@ -143,7 +130,6 @@ public class AuthService {
                 .orElseThrow(() -> new UnauthorizedException("INVALID_TOKEN", "Refresh-токен не найден"));
     }
 
-    /** Выдаёт access-токен и refresh-токен; номер refresh-токена сохраняется в БД. */
     private TokenResponse issueTokens(User user) {
         String jti = UUID.randomUUID().toString();
         Instant expiresAt = Instant.now().plus(jwtService.getRefreshTtl());

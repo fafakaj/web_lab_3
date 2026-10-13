@@ -14,7 +14,6 @@ const COLUMN_LABELS = [
     "Действия"
 ];
 
-// Поля формы над таблицей: фильтры, сортировка и размер страницы. Номер страницы — только в адресе
 const FORM_NAMES = FILTER_NAMES.concat(["sort", "order", "size"]);
 const BOOLEAN_PARAMS = ["is_foreign", "living"];
 const NUMBER_PARAMS = ["page", "size"];
@@ -30,7 +29,6 @@ function fillDormitoryFilter() {
     });
 }
 
-// Для метода QUERY значения уходят в JSON-теле, поэтому "true" и "2" надо превратить в true и 2
 function parseParamValue(name, value) {
     if (BOOLEAN_PARAMS.indexOf(name) !== -1 && (value === "true" || value === "false")) {
         return value === "true";
@@ -43,7 +41,6 @@ function parseParamValue(name, value) {
     return value;
 }
 
-// Параметры списка берутся из адреса страницы: index.html?group=M3301&sort=room&page=2
 function readParams() {
     const urlParams = new URLSearchParams(window.location.search);
     const params = {};
@@ -94,7 +91,6 @@ function createLink(text, href) {
     return a;
 }
 
-// Изменять и удалять может только ADMIN, поэтому USER видит одну ссылку «Подробнее»
 function createActionsCell(student) {
     const td = document.createElement("td");
     td.dataset.label = COLUMN_LABELS[7];
@@ -153,7 +149,6 @@ function showStudents(students) {
     }
 }
 
-// Адрес той же страницы списка, но с другим номером страницы: фильтры и сортировка сохраняются
 function pageUrl(page) {
     const urlParams = new URLSearchParams(window.location.search);
     urlParams.set("page", page);
@@ -173,7 +168,6 @@ function createPageLink(text, page, enabled) {
     return link;
 }
 
-// Под таблицей: «← Назад  Страница 2 из 3, всего 25  Вперёд →»
 function showPagination(result) {
     const pageCount = Math.max(1, Math.ceil(result.total / result.size));
     const info = document.createElement("span");
@@ -189,7 +183,6 @@ async function loadStudents() {
     try {
         const result = await getStudents(currentParams);
 
-        // Страницы с таким номером больше нет (например, удалили последнюю запись на ней) — к последней
         if (result.items.length === 0 && result.page > 1 && result.total > 0) {
             window.location.href = pageUrl(Math.ceil(result.total / result.size));
             return;

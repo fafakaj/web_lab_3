@@ -2,9 +2,6 @@ package ru.itmo.students.dto;
 
 import jakarta.validation.constraints.NotBlank;
 
-/**
- * Тело POST /api/auth/login.
- */
 public record LoginRequest(
         @NotBlank(message = "Обязательное поле")
         String username,
